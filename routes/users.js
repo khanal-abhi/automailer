@@ -19,7 +19,8 @@ router.post('/', function(req, res, next){
   if (username && email){
     var user = {
       name: username,
-      'email': email
+      'email': email,
+      subscribed: true
     };
     var addresses = db.collection('addresses');
     addresses.insert(user, function(err, result){
@@ -63,23 +64,29 @@ router.post('/send-message', function(req, res, next){
     errors.push('No message');
   }
 
+  if(errors.length > 0){
+    res.send({
+      summary: 'emails could not be sent',
+      errors: []});
+  }
+
   var db = req.db;
   var users = db.collection('addresses');
-  users.find({}, function(err, items){
+  users.find().toArray(function(err, items){
     if(!err){
       var result = [];
-      for(var i = 0; i < items.lenght; i++){
-        result.push({
-          email: items[i].email,
-          'subject': subject,
-          'message': message
-        });
+      for(var i = 0; i < items.length; i++){
+        if(items[i].subscribed){
+          result.push({
+            email: items[i].email,
+            'subject': subject,
+            'message': message
+          });
+        }
       }
+      res.send(result);
     } else {
-      res.send({
-        summary: 'emails could not be sent',
-        errors: []
-      });
+      res.send({error: err});
     }
   });
 
@@ -94,13 +101,50 @@ router.get('/emails', function(req, res, next){
     for(var i = 0; i < items.length; i++){
       var user = {
         name: items[i].name,
-        email: items[i].email
+        email: items[i].email,
+        subscribed: items[i].subscribed
       }
-      emails.push(user);
+      if(user.subscribed){
+        emails.push(user);
+      }
     }
     res.send(emails);
   });
 
+});
+
+/* Unsubscribe the user based on the email address */
+router.post('/unsubscribe', function(req, res, next){
+  var email = req.body.email;
+  var db = req.db;
+  var addresses = db.collection('addresses');
+  addresses.update(
+    {'email': email},
+    {
+      $set: {
+        subscribed: false
+      }
+    },
+    function(err, result){
+      if(!err){
+        console.log(result);
+        if(result.result.ok == 1 && result.result.nModified > 0){
+          res.send({
+            summary: 'User unsubscribed',
+            'email': email
+          });
+        } else {
+          res.send({
+            summary: 'User already unsubscribed or user not yet registered.',
+            'email': email
+          });
+        }
+
+      } else {
+        res.send(err);
+      }
+    }
+  );
 });
 
 module.exports = router;
