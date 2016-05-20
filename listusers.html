@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html ng-app="automailer">
+<head>
+  <title>Hello Word!</title>
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" />
+
+</head>
+<body>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+  <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.5/angular.min.js"></script>
+  <script type="text/javascript" src="/javascripts/app.js"></script>
+
+  <div class="list-users">
+    <ul ng-controller="ListUsers">
+      <li ng-repeat="user in users">{{ user.name }} <{{ user.email }}></li>
+    </ul>
+  </div>
+
+
+</body>
+</html>
