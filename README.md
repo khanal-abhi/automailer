@@ -12,6 +12,7 @@ Automailer will let one automate the process. It is mostly a basic api that will
 
 1. /users:
   GET: get all the users currently registered. No parameters required.
+  
   POST: add a new user with urlencoded parameters name and email. Validation is not done by the API at the moment so that needs to be done on the front end.
 
 2. /users/email:
