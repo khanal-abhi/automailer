@@ -52,38 +52,47 @@ router.post('/', function(req, res, next){
 
 /* Use nodemailer to send the email to all the users */
 router.post('/send-message', function(req, res, next){
+
+  var errors = [];
   var subject = req.body.subject;
   var message = req.body.message;
-  var errors = [];
-
   if(!subject){
     errors.push('No subject');
   }
-
   if(!message){
     errors.push('No message');
   }
-
-  if(errors.length > 0){
-    res.send({
-      summary: 'emails could not be sent',
-      errors: []});
-  }
+  
 
   var db = req.db;
   var users = db.collection('addresses');
   users.find().toArray(function(err, items){
     if(!err){
       var result = [];
+      var emailProps = require('../properties');
+      var nodemailer = require('nodemailer');
+      var transporter_url = 'smtps://' + emailProps.username + '%40gmail.com:' + emailProps.password + '@smtp.gmail.com';
+      var transporter = nodemailer.createTransport(transporter_url);
+
       for(var i = 0; i < items.length; i++){
         if(items[i].subscribed){
-          result.push({
-            email: items[i].email,
+          result.push(items[i].email);
+          var mailOptions = {
+            from: emailProps.from,
+            to: items[i].email,
             'subject': subject,
-            'message': message
+            text: message
+          }
+
+          transporter.sendMail(mailOptions, function(err, info){
+            if(err){
+              console.log(err);
+            }
           });
+
         }
       }
+
       res.send(result);
     } else {
       res.send({error: err});
